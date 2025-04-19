@@ -4,6 +4,8 @@
 # Audio recordings
 *.wav
 
+encoded.txt
+
 # Python
 __pycache__/
 *.py[cod]

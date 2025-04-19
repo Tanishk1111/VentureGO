@@ -1,0 +1,28 @@
+name: Deploy to Google Cloud
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up credentials
+        run: |
+          echo '${{ secrets.GCP_CREDENTIALS }}' > ${{ github.workspace }}/credentials.json
+          echo "GOOGLE_APPLICATION_CREDENTIALS=${{ github.workspace }}/credentials.json" >> $GITHUB_ENV
+      
+      - name: Setup Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: vc-interview-agent
+      
+      - name: Deploy to Cloud Run
+        run: |
+          # Your deployment commands here
+          # Example:
+          gcloud builds submit --tag gcr.io/vc-interview-agent/vc-interview-platform
+          gcloud run deploy vc-interview-platform --image gcr.io/vc-interview-agent/vc-interview-platform --platform managed
