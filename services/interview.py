@@ -6,6 +6,7 @@ from typing import List, Dict, Optional, Any, Tuple
 import uuid
 import json
 from pathlib import Path
+import logging
 
 import google.generativeai as genai
 from fastapi import UploadFile, HTTPException
@@ -16,8 +17,17 @@ from services.document import extract_text_from_cv
 from services.audio import transcribe_audio_file
 from services.analysis import analyze_responses, analyze_sentiment
 
+# Configure logging
+logger = logging.getLogger(__name__)
+
 # Configure Gemini
-genai.configure(api_key=API_KEY)
+# If API_KEY is None, it will use the service account authentication
+if API_KEY:
+    logger.info("Configuring Gemini with API key")
+    genai.configure(api_key=API_KEY)
+else:
+    logger.info("Using default authentication for Gemini (service account)")
+    # No need to explicitly configure - Google Client libraries will use the default credentials
 
 class InterviewService:
     def __init__(self):
