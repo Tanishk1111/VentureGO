@@ -29,15 +29,13 @@ RUN if [ -f vc_interview_questions_full.csv ] && [ ! -f data/vc_interview_questi
 # Make sure directories have correct permissions
 RUN chmod -R 755 /app/data /app/sessions /app/temp /app/uploads
 
-# Verify service account and CSV file existence
-RUN ls -la /app/vc-interview-service-account.json || echo "WARNING: Service account file not found"
+# Verify CSV file exists
 RUN ls -la /app/data/vc_interview_questions_full.csv || echo "WARNING: CSV file not found"
 
 # Explicitly expose port 8080
 EXPOSE 8080
 
-# Set environment variable for Google Cloud
-ENV GOOGLE_APPLICATION_CREDENTIALS=/app/vc-interview-service-account.json
+# Environment variables for better logging
 ENV PYTHONUNBUFFERED=1
 
 # Set the entrypoint
