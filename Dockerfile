@@ -2,7 +2,7 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-# Install system dependencies for PyAudio
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     portaudio19-dev \
     python3-pyaudio \
@@ -18,5 +18,11 @@ COPY . .
 # Create necessary directories
 RUN mkdir -p sessions data
 
-# Set the entrypoint
+# Set environment variables
+ENV PORT=8080
+
+# Expose the port
+EXPOSE 8080
+
+# Run the web server
 CMD ["python", "main.py"]

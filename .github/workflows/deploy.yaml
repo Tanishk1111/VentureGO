@@ -17,9 +17,10 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_CREDENTIALS }}
           
-      - name: Deploy to Google Cloud
+      - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: 'vc-interview-platform'
           image: 'gcr.io/vc-interview-agent/vc-interview-platform'
           region: 'us-central1'
+          flags: '--allow-unauthenticated' # Add this flag

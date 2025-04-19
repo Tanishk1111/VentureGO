@@ -9,7 +9,7 @@ import io
 
 from config import API_TITLE, API_DESCRIPTION, API_VERSION, HOST, PORT
 from models.schemas import (
-    SessionCreate, SessionStatus, Question, Response, 
+    SessionCreate, SessionStatus, Question, Response,
     Feedback, InterviewResult, CVUpload, AudioUpload
 )
 from services.interview import InterviewService
@@ -136,7 +136,7 @@ async def text_to_speech(text: str, voice_type: Optional[str] = "male"):
     )
 
 @app.post("/api/speech/transcribe", response_model=dict)
-async def transcribe_audio(file: UploadFile = File(...)):
+async def transcribe_audio(file: UploadFile = File(...), background_tasks: BackgroundTasks = BackgroundTasks()):
     """Transcribe audio file"""
     # Validate file
     if not validate_audio_file(file):
@@ -155,15 +155,16 @@ async def transcribe_audio(file: UploadFile = File(...)):
         except:
             pass
     
-    background_tasks = BackgroundTasks()
     background_tasks.add_task(cleanup)
     
     return {"transcription": transcription}
 
 if __name__ == "__main__":
+    # Use the PORT environment variable provided by Cloud Run
+    port = int(os.environ.get("PORT", PORT))
     uvicorn.run(
         "main:app", 
-        host=HOST, 
-        port=PORT, 
+        host="0.0.0.0",  # Listen on all network interfaces for Cloud Run
+        port=port,
         reload=True
     )
