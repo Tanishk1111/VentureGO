@@ -15,14 +15,30 @@ RUN pip install "numpy<2.0.0" --force-reinstall
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Create necessary directories
+RUN mkdir -p sessions data temp uploads
+
 # Copy the application code
 COPY . .
 
-# Create necessary directories
-RUN mkdir -p sessions data
+# Ensure the CSV file is in the data directory
+RUN if [ -f vc_interview_questions_full.csv ] && [ ! -f data/vc_interview_questions_full.csv ]; then \
+    cp vc_interview_questions_full.csv data/vc_interview_questions_full.csv; \
+    fi
+
+# Make sure directories have correct permissions
+RUN chmod -R 755 /app/data /app/sessions /app/temp /app/uploads
+
+# Verify service account and CSV file existence
+RUN ls -la /app/vc-interview-service-account.json || echo "WARNING: Service account file not found"
+RUN ls -la /app/data/vc_interview_questions_full.csv || echo "WARNING: CSV file not found"
 
 # Explicitly expose port 8080
 EXPOSE 8080
+
+# Set environment variable for Google Cloud
+ENV GOOGLE_APPLICATION_CREDENTIALS=/app/vc-interview-service-account.json
+ENV PYTHONUNBUFFERED=1
 
 # Set the entrypoint
 CMD ["python", "main.py"]

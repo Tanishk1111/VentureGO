@@ -2,7 +2,7 @@ name: Deploy VentureGO
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -11,17 +11,27 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-        
+
       - name: Setup Google Cloud SDK
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_CREDENTIALS }}
-          
+
+      - name: Build and push image to Google Container Registry
+        uses: google-github-actions/setup-gcloud@v1
+
+      - name: Configure Docker
+        run: gcloud auth configure-docker
+
+      - name: Build and push Docker image
+        run: |
+          docker build -t gcr.io/vc-interview-agent/vc-interview-platform:${{ github.sha }} .
+          docker push gcr.io/vc-interview-agent/vc-interview-platform:${{ github.sha }}
+
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
         with:
-          service: 'vc-interview-platform'
-          image: 'gcr.io/vc-interview-agent/vc-interview-platform'
-          region: 'us-central1'
-          flags: '--allow-unauthenticated --port=8080'
- 
+          service: "vc-interview-platform"
+          image: "gcr.io/vc-interview-agent/vc-interview-platform:${{ github.sha }}"
+          region: "us-central1"
+          flags: "--allow-unauthenticated --port=8080"

@@ -30,11 +30,13 @@ os.makedirs(SESSIONS_DIR, exist_ok=True)
 # Google Cloud settings
 GOOGLE_APPLICATION_CREDENTIALS = os.environ.get(
     "GOOGLE_APPLICATION_CREDENTIALS", 
-    os.path.join(BASE_DIR, "vc-interview-agent-credentials.json")
+    os.path.join(BASE_DIR, "vc-interview-service-account.json")
 )
 PROJECT_ID = os.environ.get("GCP_PROJECT_ID", "vc-interview-agent")
 LOCATION = os.environ.get("GCP_LOCATION", "us-central1")
-API_KEY = os.environ.get("GEMINI_API_KEY", "your-api-key-here")
+
+# No need for separate API key - using service account
+API_KEY = None
 
 # CSV path for questions
 QUESTIONS_CSV_PATH = os.path.join(BASE_DIR, "data", "vc_interview_questions_full.csv")

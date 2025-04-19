@@ -4,6 +4,9 @@ from fastapi.responses import JSONResponse, FileResponse, StreamingResponse
 import uvicorn
 import os
 import asyncio
+import logging
+import sys
+import traceback
 from typing import Optional, List
 import io
 
@@ -15,6 +18,14 @@ from models.schemas import (
 from services.interview import InterviewService
 from services.audio import generate_speech, transcribe_audio_file
 from utils.helpers import validate_document_file, validate_audio_file, save_upload_file, clean_temp_files
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
+logger = logging.getLogger(__name__)
 
 # Create FastAPI app
 app = FastAPI(
@@ -33,7 +44,14 @@ app.add_middleware(
 )
 
 # Create interview service instance
-interview_service = InterviewService()
+try:
+    logger.info("Initializing interview service...")
+    interview_service = InterviewService()
+    logger.info("Interview service initialized successfully")
+except Exception as e:
+    logger.error(f"Failed to initialize interview service: {str(e)}")
+    logger.error(traceback.format_exc())
+    raise
 
 # Periodic cleanup task
 async def cleanup_task():
@@ -46,7 +64,7 @@ async def cleanup_task():
             # Clean up temporary files older than 24 hours
             clean_temp_files(24)
         except Exception as e:
-            print(f"Error in cleanup task: {e}")
+            logger.error(f"Error in cleanup task: {e}")
         
         # Sleep for 1 hour before next cleanup
         await asyncio.sleep(3600)
@@ -54,7 +72,26 @@ async def cleanup_task():
 @app.on_event("startup")
 async def startup_event():
     """Start background tasks on application startup"""
-    asyncio.create_task(cleanup_task())
+    logger.info("Starting application...")
+    try:
+        asyncio.create_task(cleanup_task())
+        logger.info("Cleanup task scheduled")
+    except Exception as e:
+        logger.error(f"Error during startup: {str(e)}")
+        logger.error(traceback.format_exc())
+
+# Health check endpoint
+@app.get("/health")
+async def health_check():
+    """Health check endpoint"""
+    try:
+        # Check if services are initialized
+        if interview_service:
+            return {"status": "healthy"}
+        return {"status": "service_not_initialized"}
+    except Exception as e:
+        logger.error(f"Health check failed: {str(e)}")
+        return {"status": "unhealthy", "error": str(e)}
 
 # API endpoints
 @app.post("/api/sessions", response_model=SessionCreate)
