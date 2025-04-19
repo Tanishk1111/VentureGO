@@ -164,8 +164,7 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     uvicorn.run(
         "main:app", 
-        host="0.0.0.0",  # This ensures binding to all network interfaces
-        port=port,       # Use the environment variable PORT
+        host="0.0.0.0",  # Must listen on all interfaces for Cloud Run
+        port=port,
         reload=False     # Disable reload in production
     )
-

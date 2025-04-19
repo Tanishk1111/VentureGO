@@ -8,15 +8,12 @@ RUN apt-get update && apt-get install -y \
     python3-pyaudio \
     && rm -rf /var/lib/apt/lists/*
 
+# Pin NumPy to version below 2.0 to avoid compatibility issues
+RUN pip install "numpy<2.0.0" --force-reinstall
+
 # Copy requirements first for better caching
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-
-# Add this before installing pandas
-RUN pip install "numpy<2.0.0" --force-reinstall
-# Then install pandas
-RUN pip install pandas
-
 
 # Copy the application code
 COPY . .
@@ -24,11 +21,8 @@ COPY . .
 # Create necessary directories
 RUN mkdir -p sessions data
 
-# Set environment variables
-ENV PORT=8080
-
-# Expose the port
+# Explicitly expose port 8080
 EXPOSE 8080
 
-# Run the web server
+# Set the entrypoint
 CMD ["python", "main.py"]

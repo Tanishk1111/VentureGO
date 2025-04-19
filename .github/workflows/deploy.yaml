@@ -23,4 +23,5 @@ jobs:
           service: 'vc-interview-platform'
           image: 'gcr.io/vc-interview-agent/vc-interview-platform'
           region: 'us-central1'
-          flags: '--allow-unauthenticated' # Add this flag
+          flags: '--allow-unauthenticated --port=8080'
+ 
