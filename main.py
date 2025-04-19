@@ -161,10 +161,11 @@ async def transcribe_audio(file: UploadFile = File(...), background_tasks: Backg
 
 if __name__ == "__main__":
     # Use the PORT environment variable provided by Cloud Run
-    port = int(os.environ.get("PORT", PORT))
+    port = int(os.environ.get("PORT", 8080))
     uvicorn.run(
         "main:app", 
-        host="0.0.0.0",  # Listen on all network interfaces for Cloud Run
-        port=port,
-        reload=True
+        host="0.0.0.0",  # This ensures binding to all network interfaces
+        port=port,       # Use the environment variable PORT
+        reload=False     # Disable reload in production
     )
+

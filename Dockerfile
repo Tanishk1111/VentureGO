@@ -12,6 +12,12 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Add this before installing pandas
+RUN pip install "numpy<2.0.0" --force-reinstall
+# Then install pandas
+RUN pip install pandas
+
+
 # Copy the application code
 COPY . .
 
