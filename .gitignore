@@ -1,0 +1,18 @@
+# Credentials
+*.json
+
+# Audio recordings
+*.wav
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+venv/
+
+# Session data
+sessions/
+
+# Local data
+data/
