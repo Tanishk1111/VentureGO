@@ -1,6 +1,9 @@
 import os
 import logging
 from pathlib import Path
+# Use environment variables for credentials
+GOOGLE_APPLICATION_CREDENTIALS = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", "")
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

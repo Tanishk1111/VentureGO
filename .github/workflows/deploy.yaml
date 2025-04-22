@@ -1,9 +1,13 @@
-name: Deploy VentureGO
+name: Deploy to Cloud Run
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
 
 jobs:
   deploy:
@@ -11,55 +15,26 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
+        
       - name: Setup Google Cloud SDK
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_CREDENTIALS }}
-
-      - name: Build and push image to Google Container Registry
-        uses: google-github-actions/setup-gcloud@v1
-
-      - name: Configure Docker
-        run: gcloud auth configure-docker
-
-      - name: Create data directory and copy CSV file
+          
+      - name: Enable APIs
         run: |
-          mkdir -p data
-          if [ -f vc_interview_questions_full.csv ]; then
-            cp vc_interview_questions_full.csv data/
-            echo "CSV file copied to data directory"
-          else
-            echo "Warning: CSV file not found in repository root"
-          fi
-
-      - name: Build and push Docker image
+          gcloud services enable run.googleapis.com
+          gcloud services enable cloudresourcemanager.googleapis.com
+          gcloud services enable aiplatform.googleapis.com
+          
+      - name: Build and push container
         run: |
-          docker build -t gcr.io/vc-interview-agent/vc-interview-platform:${{ github.sha }} .
-          docker push gcr.io/vc-interview-agent/vc-interview-platform:${{ github.sha }}
-
-      - name: Setup Cloud Run service account permissions
-        run: |
-          # Get the default compute service account
-          SERVICE_ACCOUNT=$(gcloud iam service-accounts list --filter="email ~ compute@developer.gserviceaccount.com" --format="value(email)")
-
-          # Grant necessary roles to the service account
-          gcloud projects add-iam-policy-binding vc-interview-agent \
-            --member="serviceAccount:$SERVICE_ACCOUNT" \
-            --role="roles/aiplatform.user"
-            
-          gcloud projects add-iam-policy-binding vc-interview-agent \
-            --member="serviceAccount:$SERVICE_ACCOUNT" \
-            --role="roles/speech.client"
-            
-          gcloud projects add-iam-policy-binding vc-interview-agent \
-            --member="serviceAccount:$SERVICE_ACCOUNT" \
-            --role="roles/texttospeech.user"
-
+          gcloud builds submit --tag gcr.io/vc-interview-agent/vc-interview-platform
+          
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
         with:
-          service: "vc-interview-platform"
-          image: "gcr.io/vc-interview-agent/vc-interview-platform:${{ github.sha }}"
-          region: "us-central1"
-          flags: "--allow-unauthenticated --port=8080 --timeout=60"
+          service: 'vc-interview-platform'
+          image: 'gcr.io/vc-interview-agent/vc-interview-platform'
+          region: 'us-central1'
+          flags: '--allow-unauthenticated --port=8080'
